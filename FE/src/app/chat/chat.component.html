@@ -1,0 +1,46 @@
+<div>
+    <h1>
+        Hello {{ name }}! 
+        <mat-icon *ngIf="connected" matListItemIcon>signal_cellular_alt</mat-icon>
+        <mat-icon *ngIf="!connected" matListItemIcon>signal_cellular_connected_no_internet_4_bar</mat-icon>
+    </h1>
+    <div>
+        <div class="main">
+            <div class="userList">
+                <mat-card>
+                    <mat-card-content>
+                        <h2>{{ this.usersList.length }} people online</h2>
+                        <mat-selection-list #usersSelect>
+                            <mat-list-option [value]="user" *ngFor="let user of usersList"> {{ user.name }} </mat-list-option>
+                        </mat-selection-list>
+                    </mat-card-content>
+                </mat-card>
+            </div>
+            <div class="messages">
+                <mat-card>
+                    <mat-card-content>
+                        <form [formGroup]="chatForm" (ngSubmit)="sendMessage()">
+                            <mat-form-field class="text-field">
+                                <mat-label>Type your message</mat-label>
+                                <input formControlName="message" matInput #first>
+                            </mat-form-field>
+                        </form>
+            
+                        <mat-list>
+                            <div style="text-align: center;" *ngIf="messages.length == 0">Any messages exists</div>
+                            <mat-list-item class="list-messages" *ngFor="let message of messages">
+                                <mat-icon matListItemIcon>message</mat-icon>
+                                <div matListItemTitle>{{message.author}}</div>
+                                <div matListItemLine>{{message.content}}</div>
+                                <div matListItemLine style="display: flex; align-items: center; margin-top: 5px;"> <mat-icon style="margin-right:5px;">access_time</mat-icon><span>{{message.date | date:'M/d/yy, h:mm:ss a'}}</span></div>
+                                <div matListItemLine *ngIf="message.myMsg" style="display: flex; align-items: center;margin-top: 5px;">	<mat-icon style="margin-right:5px;">people</mat-icon> <span>{{message.toAll ? 'all' : message.recipients}}</span></div>
+                            </mat-list-item>
+                        </mat-list>
+            
+                    </mat-card-content>
+                </mat-card>
+
+            </div>
+        </div>
+    </div>
+</div>

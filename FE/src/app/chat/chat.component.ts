@@ -5,6 +5,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { DialogComponent } from './dialog/dialog.component';
 import { MatSelectionList } from '@angular/material/list';
 import { AlertComponent } from './alert/alert.component';
+import { take } from 'rxjs';
 
 
 export interface Message {
@@ -20,6 +21,9 @@ export interface Client {
   id: string;
   name: string;
 }
+
+const MAX_CONN_RETRIES = 5;
+const RETRY_FREQ = 4000;
 
 @Component({
   selector: 'app-chat',
@@ -39,6 +43,7 @@ export class ChatComponent implements AfterViewInit {
   messages: Message[] = [
   ];
   connected = false;
+  retries = 0;
 
   constructor(
     private websocketService: WebsocketService,
@@ -56,9 +61,17 @@ export class ChatComponent implements AfterViewInit {
 
     this.websocketService.onError
       .subscribe(() => {
-        setTimeout(() => {
-          this.openConnection();
-        }, 2000);
+        if(this.retries < MAX_CONN_RETRIES) {
+          setTimeout(() => {
+            this.retries++;
+            this.openConnection();
+          }, RETRY_FREQ);
+        } else {
+            const dialogRef = this.openAlert();
+            dialogRef.afterClosed().subscribe(() => {
+            this.resetUI();
+          });
+        }
       })
 
   }
@@ -79,6 +92,8 @@ export class ChatComponent implements AfterViewInit {
   openConnection() {
     this.websocketService.openConnection(this.name).subscribe({
       next: (msg) => {
+        this.retries = 0;
+
         if (msg.type === TypeMessage.Message) {
           if (msg && msg.content) {
             this.messages.unshift({
@@ -109,11 +124,14 @@ export class ChatComponent implements AfterViewInit {
     this.id = '';
     this.messages.splice(0);
     this.name = '';
+    this.usersList = [];
+
     this.openDialog();
   }
 
+  
   openAlert() {
-    this.matDialog.open(AlertComponent);
+    return this.matDialog.open(AlertComponent);
   }
 
   openDialog(): void {

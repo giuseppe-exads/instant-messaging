@@ -29,6 +29,7 @@
         const clientId = generateClientId();
         const clientName = getClientNameFromURL(request.url);
         clients.set(clientId, { name: clientName, socket: socket });
+        console.log('client: ', clientId, clientName);
 
         socket.send(
             JSON.stringify({

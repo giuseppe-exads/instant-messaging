@@ -21,6 +21,7 @@ export interface Message {
     recipients: Array<string>
 }
 
+
 @Injectable()
 export class WebsocketService {
     private subject: AnonymousSubject<MessageEvent> | null = null;
@@ -28,6 +29,8 @@ export class WebsocketService {
     private queue: Queue<Object>; 
     public onOpen: Subject<void> = new Subject();
     public onError: Subject<void> = new Subject();
+
+    private timeout?: NodeJS.Timeout;
 
     constructor() {
         this.queue = new Queue<string>();
@@ -57,12 +60,12 @@ export class WebsocketService {
 
         ws.addEventListener('error', () => {
             this.subject = null;
-            this.onError.next();
         });
 
         ws.addEventListener('close', () => {
             this.subject = null;
             this.onError.next();
+            clearTimeout(this.timeout);
         });
 
         let observable = new Observable((obs: Observer<MessageEvent>) => {
@@ -80,7 +83,7 @@ export class WebsocketService {
             }
         } as any;
 
-        setInterval(() => {
+        this.timeout = setInterval(() => {
             if (ws.bufferedAmount == 0) {
                 let data = this.getMoreData();
                 if (data) {
